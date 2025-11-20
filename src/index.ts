@@ -20,9 +20,19 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware - CORS configuration
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? [process.env.FRONTEND_URL]
-  : ['http://localhost:5173', 'http://localhost:8081', 'http://localhost:3000'];
+// Support multiple frontend URLs (comma-separated)
+const frontendUrls = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : ['http://localhost:5173', 'http://localhost:8081', 'http://localhost:3000', 'http://localhost:8080'];
+
+// Also support Dashboard URL if provided
+const dashboardUrl = process.env.DASHBOARD_URL;
+const allowedOrigins = [
+  ...(dashboardUrl ? [dashboardUrl] : []),
+  ...frontendUrls,
+  'https://dashboard-one-delta-12.vercel.app',
+  'https://syria-site.vercel.app' // Add other potential production URLs here
+];
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -40,6 +50,9 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+
+    // Log blocked origin for debugging
+    console.log('Blocked by CORS:', origin);
     
     callback(new Error('Not allowed by CORS'));
   },
@@ -77,6 +90,6 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`🌐 Allowed Origins: ${allowedOrigins.join(', ')}`);
 });
 

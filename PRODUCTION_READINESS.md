@@ -24,8 +24,11 @@
 PORT=3001
 NODE_ENV=production
 
-# Frontend URL (for CORS)
+# Frontend URLs (for CORS)
+# Comma-separated list of allowed frontend URLs
 FRONTEND_URL=https://your-frontend-domain.com
+# Dashboard URL (separate from frontend)
+DASHBOARD_URL=https://dashboard-one-delta-12.vercel.app
 
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_live_your_stripe_secret_key_here
