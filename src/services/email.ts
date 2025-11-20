@@ -1,39 +1,7 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-// Lazy initialization of email transporter
-let transporterInstance: nodemailer.Transporter | null = null;
-
-function getEmailTransporter(): nodemailer.Transporter {
-  if (!transporterInstance) {
-    const smtpHost = process.env.SMTP_HOST || 'mail.privateemail.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpUser = process.env.SMTP_USER || 'support@arvsouq.com';
-    const smtpPassword = process.env.SMTP_PASSWORD;
-
-    if (!smtpPassword) {
-      throw new Error('Missing SMTP configuration. Please set SMTP_PASSWORD in your .env file');
-    }
-
-    transporterInstance = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      requireTLS: smtpPort === 587, // Force STARTTLS for port 587
-      auth: {
-        user: smtpUser,
-        pass: smtpPassword,
-      },
-      connectionTimeout: 10000, // 10 seconds timeout
-      greetingTimeout: 10000, // 10 seconds greeting timeout
-      socketTimeout: 10000, // 10 seconds socket timeout
-      tls: {
-        rejectUnauthorized: false, // Allow self-signed certificates (if needed)
-      },
-    });
-  }
-
-  return transporterInstance;
-}
+// Initialize Resend
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface OrderItem {
   product?: {
@@ -82,7 +50,10 @@ export async function sendPurchaseConfirmationEmail(
     console.log('Customer email:', order.shipping?.email);
     console.log('Order items count:', order.order_items?.length || 0);
     
-    const transporter = getEmailTransporter();
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY in environment variables');
+    }
+
     const fromEmail = process.env.SMTP_USER || 'support@arvsouq.com';
     const toEmail = order.shipping?.email;
 
@@ -252,30 +223,25 @@ Thank you for shopping with us!
 ARV Souq
     `;
 
-    const mailOptions = {
-      from: `"ARV Souq" <${fromEmail}>`,
+    console.log('Email service: Sending email via Resend...');
+    const { data, error } = await resend.emails.send({
+      from: `ARV Souq <${fromEmail}>`,
       to: toEmail,
       subject: 'Order Confirmation - Thank you for your purchase!',
-      text: emailText,
       html: emailHtml,
-    };
+      text: emailText,
+    });
 
-    console.log('Email service: Sending email...');
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      throw new Error(`Resend API error: ${error.message}`);
+    }
+
     console.log('Email service: Email sent successfully!');
-    console.log('Message ID:', info.messageId);
-    console.log('Response:', info.response);
+    console.log('Message ID:', data?.id);
   } catch (error: any) {
     console.error('Email service: Error sending purchase confirmation email');
     console.error('Error message:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Error responseCode:', error.responseCode);
-    console.error('Error response:', error.response);
     console.error('Error stack:', error.stack);
-    
-    if (error.responseCode === 535) {
-      throw new Error('SMTP Authentication failed. Please check your SMTP_USER and SMTP_PASSWORD in .env file');
-    }
     throw new Error(`Failed to send confirmation email: ${error.message}`);
   }
 }
@@ -294,7 +260,10 @@ export async function sendOrderStatusUpdateEmail(
     console.log('Status changed from:', oldStatus, 'to:', newStatus);
     console.log('Customer email:', order.shipping?.email);
     
-    const transporter = getEmailTransporter();
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY in environment variables');
+    }
+
     const fromEmail = process.env.SMTP_USER || 'support@arvsouq.com';
     const toEmail = order.shipping?.email;
 
@@ -523,30 +492,25 @@ Thank you for shopping with us!
 ARV Souq
     `;
 
-    const mailOptions = {
-      from: `"ARV Souq" <${fromEmail}>`,
+    console.log('Email service: Sending order status update email via Resend...');
+    const { data, error } = await resend.emails.send({
+      from: `ARV Souq <${fromEmail}>`,
       to: toEmail,
       subject: `Order Update - ${statusContent.title} (Order #${order.id.substring(0, 8)})`,
-      text: emailText,
       html: emailHtml,
-    };
+      text: emailText,
+    });
 
-    console.log('Email service: Sending order status update email...');
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      throw new Error(`Resend API error: ${error.message}`);
+    }
+
     console.log('Email service: Order status update email sent successfully!');
-    console.log('Message ID:', info.messageId);
-    console.log('Response:', info.response);
+    console.log('Message ID:', data?.id);
   } catch (error: any) {
     console.error('Email service: Error sending order status update email');
     console.error('Error message:', error.message);
-    console.error('Error code:', error.code);
-    console.error('Error responseCode:', error.responseCode);
-    console.error('Error response:', error.response);
     console.error('Error stack:', error.stack);
-    
-    if (error.responseCode === 535) {
-      throw new Error('SMTP Authentication failed. Please check your SMTP_USER and SMTP_PASSWORD in .env file');
-    }
     throw new Error(`Failed to send order status update email: ${error.message}`);
   }
 }

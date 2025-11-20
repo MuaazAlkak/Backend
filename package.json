@@ -25,7 +25,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "nodemailer": "^7.0.10",
-    "stripe": "^17.3.1"
+    "stripe": "^17.3.1",
+    "resend": "^4.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
