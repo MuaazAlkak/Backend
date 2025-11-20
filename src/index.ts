@@ -31,7 +31,8 @@ const allowedOrigins = [
   ...(dashboardUrl ? [dashboardUrl] : []),
   ...frontendUrls,
   'https://dashboard-one-delta-12.vercel.app',
-  'https://syria-site.vercel.app' // Add other potential production URLs here
+  'https://syria-site.vercel.app',
+  'https://ecom-repo-nu.vercel.app' // Add other potential production URLs here
 ];
 
 app.use(cors({
