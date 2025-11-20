@@ -1,6 +1,6 @@
 # Syria Checkout Backend
 
-Backend API for handling checkout payment processing for ArvSouq using Stripe and Supabase.
+Backend API for handling checkout payment processing for ArvSouq ecommerce and dashboard using Stripe and Supabase.
 
 ## Features
 
