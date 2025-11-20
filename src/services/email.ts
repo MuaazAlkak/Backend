@@ -18,9 +18,16 @@ function getEmailTransporter(): nodemailer.Transporter {
       host: smtpHost,
       port: smtpPort,
       secure: smtpPort === 465,
+      requireTLS: smtpPort === 587, // Force STARTTLS for port 587
       auth: {
         user: smtpUser,
         pass: smtpPassword,
+      },
+      connectionTimeout: 10000, // 10 seconds timeout
+      greetingTimeout: 10000, // 10 seconds greeting timeout
+      socketTimeout: 10000, // 10 seconds socket timeout
+      tls: {
+        rejectUnauthorized: false, // Allow self-signed certificates (if needed)
       },
     });
   }
