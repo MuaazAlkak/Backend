@@ -7,7 +7,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load .env file from the backend directory
-dotenv.config({ path: join(__dirname, '..', '.env') });
+const envPath = join(__dirname, '..', '.env');
+dotenv.config({ path: envPath });
+
+// Verify critical environment variables are loaded
+if (!process.env.RESEND_API_KEY) {
+  console.warn('⚠️  WARNING: RESEND_API_KEY not found in environment variables');
+  console.warn(`   Looking for .env file at: ${envPath}`);
+}
 
 import express from 'express';
 import cors from 'cors';

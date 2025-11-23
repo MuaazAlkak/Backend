@@ -1,7 +1,18 @@
 import { Resend } from 'resend';
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization - create Resend instance only when needed
+let resendInstance: Resend | null = null;
+
+function getResend(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing RESEND_API_KEY in environment variables');
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 interface OrderItem {
   product?: {
@@ -224,6 +235,7 @@ ARV Souq
     `;
 
     console.log('Email service: Sending email via Resend...');
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from: `ARV Souq <${fromEmail}>`,
       to: toEmail,
@@ -493,6 +505,7 @@ ARV Souq
     `;
 
     console.log('Email service: Sending order status update email via Resend...');
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from: `ARV Souq <${fromEmail}>`,
       to: toEmail,
